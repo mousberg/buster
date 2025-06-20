@@ -4,11 +4,28 @@ import { useState } from 'react';
 import CallButton from '@/components/CallButton';
 import PhoneNumberInput from '@/components/PhoneNumberInput';
 import InstructionsInput from '@/components/InstructionsInput';
+import CallTranscript from '@/components/CallTranscript';
+import CallHistory from '@/components/CallHistory';
+import { useCallStore } from '@/store/callStore';
+import { makeCall, generateMockTranscript } from '@/services/api';
 
 export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [instructions, setInstructions] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  const {
+    currentCall,
+    isCallActive,
+    isLoading,
+    callHistory,
+    pendingInfoRequests,
+    startCall,
+    updateCallStatus,
+    addTranscriptMessage,
+    completeCall,
+    resolveInfoRequest,
+    setLoading,
+  } = useCallStore();
 
   const isFormValid = phoneNumber.trim() !== '' && instructions.trim() !== '';
 
@@ -18,46 +35,95 @@ export default function Home() {
       return;
     }
     
-    setIsLoading(true);
+    // Start the call in the store
+    startCall(phoneNumber, instructions);
     
-    // Placeholder for ElevenLabs voice agent integration
-    console.log("Making call to:", phoneNumber);
-    console.log("Instructions:", instructions);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    try {
+      console.log("Making call to:", phoneNumber);
+      console.log("Instructions:", instructions);
+      
+      // For now, use mock data - replace with actual API call later
+      updateCallStatus('active');
+      
+      // Simulate getting transcript after delay
+      setTimeout(() => {
+        const mockTranscript = generateMockTranscript(instructions);
+        
+        // Add messages one by one to simulate real-time
+        mockTranscript.messages.forEach((message, index) => {
+          setTimeout(() => {
+            addTranscriptMessage(message);
+          }, (index + 1) * 1000);
+        });
+        
+        // Complete call after all messages
+        setTimeout(() => {
+          completeCall(mockTranscript.summary);
+        }, (mockTranscript.messages.length + 1) * 1000);
+        
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Error making call:", error);
+      updateCallStatus('failed');
+      setTimeout(() => {
+        completeCall("Call failed to connect");
+      }, 1000);
+    }
+  };
+
+  const handleInfoProvided = (requestId: string) => {
+    resolveInfoRequest(requestId);
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <div className="container mx-auto py-10 px-4 max-w-3xl flex-1 flex flex-col justify-center">
+      <div className="container mx-auto py-10 px-4 max-w-4xl flex-1">
         <div className="flex-none mb-10">
           <h1 className="text-3xl font-medium text-center">
             Who you gonna call?
           </h1>
         </div>
         
-        <div className="w-full">
-          <div className="bg-white rounded-[28px] border border-[rgba(13,13,13,0.05)] shadow-[0_10px_20px_rgba(0,0,0,0.10)] overflow-hidden">
-            <InstructionsInput
-              value={instructions}
-              onChange={setInstructions}
-            />
-            
-            <div className="flex items-center px-4 pb-4 gap-2">
-              <PhoneNumberInput 
-                value={phoneNumber} 
-                onChange={setPhoneNumber} 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left column - Call interface */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-[28px] border border-[rgba(13,13,13,0.05)] shadow-[0_10px_20px_rgba(0,0,0,0.10)] overflow-hidden">
+              <InstructionsInput
+                value={instructions}
+                onChange={setInstructions}
               />
               
-              <CallButton 
-                onClick={handleMakeCall}
-                isLoading={isLoading}
-                disabled={!isFormValid}
-              />
+              <div className="flex items-center px-4 pb-4 gap-2">
+                <PhoneNumberInput 
+                  value={phoneNumber} 
+                  onChange={setPhoneNumber} 
+                />
+                
+                <CallButton 
+                  onClick={handleMakeCall}
+                  isLoading={isLoading}
+                  disabled={!isFormValid || isCallActive}
+                />
+              </div>
             </div>
+            
+            {/* Current call transcript */}
+            {currentCall && (
+              <CallTranscript
+                messages={currentCall.transcript}
+                summary={currentCall.summary}
+                isVisible={true}
+                isLive={isCallActive}
+                callId={currentCall.id}
+                onInfoProvided={handleInfoProvided}
+              />
+            )}
+          </div>
+          
+          {/* Right column - Call history */}
+          <div className="space-y-6">
+            <CallHistory calls={callHistory} />
           </div>
         </div>
       </div>
