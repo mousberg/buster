@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Brain, Database, Zap, Network } from 'lucide-react';
+import { X, Brain, Database, Zap } from 'lucide-react';
 import VectorDatabaseViz from './VectorDatabaseViz';
 
 interface BrainContext {
