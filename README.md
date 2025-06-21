@@ -1,5 +1,6 @@
-<p align="center">
+<p align="center" style="display: flex; justify-content: center; align-items: center; gap: 40px;">
   <img src="assets/full-logo.svg" alt="Langflow Logo" width="400"/>
+  <img src="assets/unicorn-mafia-logo.png" alt="Unicorn Mafia Logo" width="150"/>
 </p>
 
 # Langflow Voice Agent Platform
@@ -9,7 +10,11 @@ An intelligent voice agent platform that integrates ElevenLabs Conversational AI
 
 ## System Architecture
 
-![System Architecture](system-architecture.png)
+![System Architecture](assets/system-architecture.png)
+
+### Langflow Architecture
+
+![Langflow Architecture](assets/langflow-architecture.png)
 
 The platform consists of multiple interconnected components working together to provide a comprehensive voice agent solution:
 
