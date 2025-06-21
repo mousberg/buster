@@ -1,15 +1,39 @@
-import React from 'react';
-import { Textarea } from "@/components/ui/textarea";
+import React, { useState, useEffect, useRef } from 'react';
 
 interface InstructionsInputProps {
   value: string;
   onChange: (value: string) => void;
+  onKeywordsDetected?: (keywords: string[]) => void;
 }
 
-const InstructionsInput: React.FC<InstructionsInputProps> = ({ value, onChange }) => {
+const BRAIN_KEYWORDS = [
+  'pizza', 'dominos', 'delivery', 'order', 'food',
+  'doctor', 'appointment', 'medical', 'dentist',
+  'hotel', 'booking', 'reservation', 'restaurant',
+  'call', 'phone', 'contact', 'schedule', 'cancel'
+];
+
+const InstructionsInput: React.FC<InstructionsInputProps> = ({ 
+  value, 
+  onChange, 
+  onKeywordsDetected 
+}) => {
+  const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Detect keywords in the input
+    const keywords = BRAIN_KEYWORDS.filter(keyword =>
+      value.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    setDetectedKeywords(keywords);
+    onKeywordsDetected?.(keywords);
+  }, [value, onKeywordsDetected]);
+
+
   return (
-    <Textarea
-      className="min-h-[120px] p-6 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none text-base shadow-none outline-none rounded-[28px]"
+    <textarea
+      className="min-h-[120px] p-6 border-0 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none text-base shadow-none outline-none rounded-[28px] w-full bg-transparent"
       placeholder="Ask anything"
       value={value}
       onChange={(e) => onChange(e.target.value)}

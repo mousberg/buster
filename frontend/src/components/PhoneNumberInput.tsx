@@ -51,7 +51,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange }) 
       
       <Input
         type="tel"
-        className="border-0 focus-visible:ring-0 text-base pl-11 py-3 h-auto bg-transparent"
+        className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-base pl-11 py-3 h-auto bg-transparent shadow-none outline-none"
         placeholder="Phone number"
         value={value}
         onChange={handleChange}
