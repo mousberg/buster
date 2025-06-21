@@ -113,24 +113,7 @@ export const getCallStatus = async (callId: string): Promise<StatusUpdate[]> => 
       if (data.detail.includes("Collection") || data.detail.includes("Cursor")) {
         console.warn("⚠️ Status checker has a database issue:", data.detail);
         console.warn("⚠️ Backend needs to fix the find() cursor handling");
-        // Return mock status updates to show the UI working
-        return [
-          {
-            timestamp: new Date().toISOString(),
-            status: "call_initiated",
-            message: "Call request received by orchestrator"
-          },
-          {
-            timestamp: new Date(Date.now() - 5000).toISOString(),
-            status: "processing",
-            message: "AI is analyzing the request"
-          },
-          {
-            timestamp: new Date(Date.now() - 10000).toISOString(),
-            status: "research_complete",
-            message: "Found relevant information"
-          }
-        ];
+        return []; // Return empty array when backend has issues
       }
     }
     
@@ -259,48 +242,12 @@ export const scheduleTask = async (
   }
 };
 
-// Mock function for development
-export const generateMockTranscript = (instructions: string): TranscriptResponse => {
-  const mockTranscript: TranscriptMessage[] = [
-    {
-      role: 'AI Agent',
-      content: `Hello, I'm calling regarding: ${instructions}`,
-      timestamp: '00:00:05'
-    },
-    {
-      role: 'Representative',
-      content: 'Hello! How can I help you today?',
-      timestamp: '00:00:10'
-    },
-    {
-      role: 'AI Agent',
-      content: 'I need assistance with the request I mentioned.',
-      timestamp: '00:00:15'
-    },
-    {
-      role: 'Representative',
-      content: 'I understand. Let me help you with that.',
-      timestamp: '00:00:20'
-    },
-    {
-      role: 'AI Agent',
-      content: 'Thank you for your assistance.',
-      timestamp: '00:00:30'
-    },
-    {
-      role: 'Representative',
-      content: 'You\'re welcome! Is there anything else I can help you with?',
-      timestamp: '00:00:35'
-    },
-    {
-      role: 'AI Agent',
-      content: 'No, that\'s all. Have a great day!',
-      timestamp: '00:00:40'
-    }
-  ];
-
-  return {
-    messages: mockTranscript,
-    summary: `Successfully completed call regarding: ${instructions.substring(0, 50)}...`
-  };
+// Function to convert status updates to transcript-like messages
+export const convertStatusToTranscript = (statusUpdates: StatusUpdate[]): TranscriptMessage[] => {
+  return statusUpdates.map((update, index) => ({
+    role: 'AI Agent' as const,
+    content: `${update.status}: ${update.message || 'Processing...'}`,
+    timestamp: new Date(update.timestamp).toLocaleTimeString(),
+    isInfoRequest: false
+  }));
 };
