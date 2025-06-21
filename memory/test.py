@@ -6,7 +6,7 @@ Test webhook
 import requests
 import json
 
-WEBHOOK_URL = "http://127.0.0.1:7860/api/v1/webhook/41d39d2c-a485-4cc6-851b-a70f75508ae6"
+WEBHOOK_URL = "http://127.0.0.1:7860/api/v1/webhook/fbe7f7de-63f9-4e8d-9962-42d6cf6c1387"
 
 def send_exact_curl_data():
     data = {
