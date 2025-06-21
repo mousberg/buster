@@ -46,18 +46,21 @@ async def add_status(status: CallStatus):
 @app.get("/status/{call_id}")
 async def get_status(call_id: str):
     try:
-        # Find the latest status for the given call_id
-        status = calls_collection.find(
-            {"call_id": call_id},
-            sort=[("timestamp", -1)]
-        )
+        # Find all statuses for the given call_id, sorted by timestamp descending
+        cursor = calls_collection.find(
+            {"call_id": call_id}
+        ).sort("timestamp", -1)
 
-        if not status:
-            raise HTTPException(status_code=404, detail="Status not found")
+        # Convert cursor to list and handle ObjectId serialization
+        statuses = []
+        for status in cursor:
+            status["_id"] = str(status["_id"])
+            statuses.append(status)
 
-        # Convert ObjectId to string for JSON serialization
-        status["_id"] = str(status["_id"])
-        return status
+        if not statuses:
+            raise HTTPException(status_code=404, detail="No statuses found for this call ID")
+
+        return statuses
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
