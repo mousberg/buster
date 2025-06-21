@@ -105,17 +105,41 @@ export const getCallStatus = async (callId: string): Promise<StatusUpdate[]> => 
       return [];
     }
 
-    const statusUpdates = await response.json();
-    console.log("📊 Status updates received:", statusUpdates);
+    const data = await response.json();
+    console.log("📊 Raw status data received:", data);
     
     // Handle status checker errors gracefully
-    if (statusUpdates && statusUpdates.detail && statusUpdates.detail.includes("Collection")) {
-      console.warn("⚠️ Status checker has a database issue, continuing without status updates");
-      return [];
+    if (data && data.detail) {
+      if (data.detail.includes("Collection") || data.detail.includes("Cursor")) {
+        console.warn("⚠️ Status checker has a database issue:", data.detail);
+        console.warn("⚠️ Backend needs to fix the find() cursor handling");
+        return []; // Return empty array when backend has issues
+      }
     }
     
-    // Ensure we return an array
-    return Array.isArray(statusUpdates) ? statusUpdates : [];
+    // If backend returns a single status object, wrap it in an array
+    if (data && !Array.isArray(data) && data.status) {
+      console.log("📊 Single status document received, converting to array");
+      return [{
+        timestamp: data.timestamp || new Date().toISOString(),
+        status: data.status,
+        message: data.message || data.metadata?.message || `Status: ${data.status}`
+      }];
+    }
+    
+    // If backend returns an array of status documents
+    if (Array.isArray(data)) {
+      console.log(`📊 Received ${data.length} status documents`);
+      // Transform each document to our StatusUpdate format
+      return data.map(doc => ({
+        timestamp: doc.timestamp || new Date().toISOString(),
+        status: doc.status || 'unknown',
+        message: doc.message || doc.metadata?.message || `Status: ${doc.status || 'unknown'}`
+      }));
+    }
+    
+    // Default: ensure we return an array
+    return [];
   } catch (error) {
     console.error("❌ Error fetching call status:", error);
     return [];
@@ -218,48 +242,12 @@ export const scheduleTask = async (
   }
 };
 
-// Mock function for development
-export const generateMockTranscript = (instructions: string): TranscriptResponse => {
-  const mockTranscript: TranscriptMessage[] = [
-    {
-      role: 'AI Agent',
-      content: `Hello, I'm calling regarding: ${instructions}`,
-      timestamp: '00:00:05'
-    },
-    {
-      role: 'Representative',
-      content: 'Hello! How can I help you today?',
-      timestamp: '00:00:10'
-    },
-    {
-      role: 'AI Agent',
-      content: 'I need assistance with the request I mentioned.',
-      timestamp: '00:00:15'
-    },
-    {
-      role: 'Representative',
-      content: 'I understand. Let me help you with that.',
-      timestamp: '00:00:20'
-    },
-    {
-      role: 'AI Agent',
-      content: 'Thank you for your assistance.',
-      timestamp: '00:00:30'
-    },
-    {
-      role: 'Representative',
-      content: 'You\'re welcome! Is there anything else I can help you with?',
-      timestamp: '00:00:35'
-    },
-    {
-      role: 'AI Agent',
-      content: 'No, that\'s all. Have a great day!',
-      timestamp: '00:00:40'
-    }
-  ];
-
-  return {
-    messages: mockTranscript,
-    summary: `Successfully completed call regarding: ${instructions.substring(0, 50)}...`
-  };
+// Function to convert status updates to transcript-like messages
+export const convertStatusToTranscript = (statusUpdates: StatusUpdate[]): TranscriptMessage[] => {
+  return statusUpdates.map((update, index) => ({
+    role: 'AI Agent' as const,
+    content: `${update.status}: ${update.message || 'Processing...'}`,
+    timestamp: new Date(update.timestamp).toLocaleTimeString(),
+    isInfoRequest: false
+  }));
 };

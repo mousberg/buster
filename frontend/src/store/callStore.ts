@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface TranscriptMessage {
   role: 'AI Agent' | 'Representative';
@@ -69,7 +70,9 @@ interface CallState {
   stopStatusPolling: () => void;
 }
 
-export const useCallStore = create<CallState>((set, get) => ({
+export const useCallStore = create<CallState>()(
+  persist(
+    (set, get) => ({
   // Initial state
   currentCall: null,
   isCallActive: false,
@@ -130,12 +133,38 @@ export const useCallStore = create<CallState>((set, get) => ({
   addStatusUpdates: (updates: StatusUpdate[]) => {
     const { currentCall } = get();
     if (currentCall && updates.length > 0) {
+      // Convert status updates to transcript messages
+      const statusMessages: TranscriptMessage[] = updates.map((update, index) => ({
+        role: 'AI Agent' as const,
+        content: `${update.status}: ${update.message || 'Processing...'}`,
+        timestamp: new Date(update.timestamp).toLocaleTimeString(),
+        isInfoRequest: false
+      }));
+
+      // Check if call should be marked as completed based on status
+      const isCompleted = updates.some(update => 
+        update.status.includes('completed') || 
+        update.status.includes('finished') || 
+        update.status.includes('done')
+      );
+
       set({
         currentCall: { 
           ...currentCall, 
-          statusUpdates: updates 
+          statusUpdates: updates,
+          transcript: statusMessages, // Replace transcript with status-based messages
+          status: isCompleted ? 'completed' : currentCall.status
         },
       });
+
+      // Auto-complete call if status indicates completion
+      if (isCompleted) {
+        const { completeCall } = get();
+        setTimeout(() => {
+          const latestUpdate = updates[updates.length - 1];
+          completeCall(latestUpdate?.message || 'Call completed successfully');
+        }, 2000); // Small delay to show final status
+      }
     }
   },
 
@@ -269,4 +298,12 @@ export const useCallStore = create<CallState>((set, get) => ({
       set({ statusPollingInterval: null });
     }
   },
-}));
+    }),
+    {
+      name: 'call-storage', // unique name for localStorage key
+      partialize: (state) => ({ 
+        callHistory: state.callHistory // Only persist call history
+      }),
+    }
+  )
+);
