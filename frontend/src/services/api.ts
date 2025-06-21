@@ -1,12 +1,4 @@
 // API service for Twilio and ElevenLabs integration
-interface CallResponse {
-  success: boolean;
-  call_id?: string;
-  error?: string;
-  errorDetails?: any;
-  statusCode?: number;
-  missingSecrets?: boolean;
-}
 
 interface TranscriptMessage {
   role: 'AI Agent' | 'Representative';
@@ -21,40 +13,112 @@ interface TranscriptResponse {
   summary: string;
 }
 
+interface AgentRequest {
+  task: string;
+  phone_number?: string;
+  call_id: string;
+}
+
+interface StatusUpdate {
+  timestamp: string;
+  status: string;
+  message?: string;
+}
+
 // Configuration - these will come from environment variables
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT || '/api';
+// Use proxy endpoints to avoid CORS issues
+const ORCHESTRATOR_ENDPOINT = '/api/orchestrator';
+const STATUS_CHECKER_ENDPOINT = '/api/status';
 
-// Function to initiate a call
+// Function to initiate a call via orchestrator
 export const makeCall = async (
   phoneNumber: string, 
-  instructions: string
+  instructions: string,
+  callId: string
 ): Promise<string> => {
-  console.log("Initiating call with:", { phoneNumber, instructions });
+  console.log("🚀 Initiating call with orchestrator:", { 
+    phoneNumber, 
+    instructions, 
+    callId,
+    endpoint: `${ORCHESTRATOR_ENDPOINT}/run-agent`
+  });
   
   try {
-    const response = await fetch(`${API_ENDPOINT}/call`, {
+    const agentRequest: AgentRequest = {
+      task: instructions,
+      phone_number: phoneNumber.trim() || undefined,
+      call_id: callId
+    };
+
+    console.log("📤 Sending request:", agentRequest);
+
+    const response = await fetch(ORCHESTRATOR_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        phoneNumber,
-        instructions,
-        agentId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'default-agent'
-      }),
+      body: JSON.stringify(agentRequest),
     });
 
-    const data: CallResponse = await response.json();
+    console.log("📡 Response status:", response.status, response.statusText);
     
-    if (!data.success || !data.call_id) {
-      throw new Error(data.error || 'Failed to initiate call');
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Orchestrator error response:", errorText);
+      throw new Error(`Orchestrator request failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ Orchestrator response:", data);
+    
+    return callId;
+  } catch (error) {
+    console.error("❌ Error calling orchestrator:", error);
+    throw error;
+  }
+};
+
+// Function to get status updates from status checker
+export const getCallStatus = async (callId: string): Promise<StatusUpdate[]> => {
+  try {
+    const statusUrl = `${STATUS_CHECKER_ENDPOINT}/${callId}`;
+    console.log("📊 Checking status for call:", callId, "at", statusUrl);
+    
+    const response = await fetch(statusUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log("📊 Status response:", response.status, response.statusText);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log("📊 No status updates yet for call:", callId);
+        return [];
+      }
+      const errorText = await response.text();
+      console.error("❌ Status checker error:", errorText);
+      // Don't throw error - just log it and return empty array to keep polling working
+      return [];
+    }
+
+    const statusUpdates = await response.json();
+    console.log("📊 Status updates received:", statusUpdates);
+    
+    // Handle status checker errors gracefully
+    if (statusUpdates && statusUpdates.detail && statusUpdates.detail.includes("Collection")) {
+      console.warn("⚠️ Status checker has a database issue, continuing without status updates");
+      return [];
     }
     
-    console.log("Call initiated successfully:", data.call_id);
-    return data.call_id;
+    // Ensure we return an array
+    return Array.isArray(statusUpdates) ? statusUpdates : [];
   } catch (error) {
-    console.error("Error initiating call:", error);
-    throw error;
+    console.error("❌ Error fetching call status:", error);
+    return [];
   }
 };
 

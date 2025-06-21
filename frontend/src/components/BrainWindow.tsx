@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Brain, Database, Zap } from 'lucide-react';
+import { X, Brain, Database, Zap, Bug } from 'lucide-react';
 import VectorDatabaseViz from './VectorDatabaseViz';
 
 interface BrainContext {
@@ -15,13 +15,17 @@ interface BrainWindowProps {
   onClose: () => void;
   context: BrainContext[];
   keywords: string[];
+  isDebugMode?: boolean;
+  onToggleDebug?: () => void;
 }
 
 const BrainWindow: React.FC<BrainWindowProps> = ({
   isOpen,
   onClose,
   context,
-  keywords
+  keywords,
+  isDebugMode = false,
+  onToggleDebug
 }) => {
   const [activeTab, setActiveTab] = useState<'vector' | 'context'>('vector');
 
@@ -67,6 +71,21 @@ const BrainWindow: React.FC<BrainWindowProps> = ({
                 Graph
               </button>
             </div>
+            
+            {/* Debug toggle button */}
+            {onToggleDebug && (
+              <button
+                onClick={onToggleDebug}
+                className={`p-2 rounded-md transition-all ${
+                  isDebugMode
+                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-gray-100'
+                }`}
+                title={isDebugMode ? 'Hide debug info' : 'Show debug info'}
+              >
+                <Bug className="w-4 h-4" />
+              </button>
+            )}
             
             <button
               onClick={onClose}
