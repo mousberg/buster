@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/Full Logo.svg" alt="Langflow Logo" width="400"/>
+</p>
+
 # Langflow Voice Agent Platform
 **Langflow Hacking Agents Hackathon Project**
 
