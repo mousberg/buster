@@ -19,12 +19,13 @@ const integrationIcons: Record<string, React.ReactNode> = {
   'notion': <Image src="/notion-icon.svg" alt="Notion" width={18} height={18} />
 };
 
-const integrationColors: Record<string, string> = {
-  'google-calendar': 'bg-blue-100 text-blue-600',
-  'whatsapp': 'bg-green-100 text-green-600',
-  'gmail': 'bg-red-100 text-red-600',
-  'notion': 'bg-gray-100 text-gray-600'
-};
+// Unused for now but kept for future styling options
+// const integrationColors: Record<string, string> = {
+//   'google-calendar': 'bg-blue-100 text-blue-600',
+//   'whatsapp': 'bg-green-100 text-green-600',
+//   'gmail': 'bg-red-100 text-red-600',
+//   'notion': 'bg-gray-100 text-gray-600'
+// };
 
 const IntegrationIndicators: React.FC<IntegrationIndicatorsProps> = ({ integrations, onIntegrationClick }) => {
   if (integrations.length === 0) return null;

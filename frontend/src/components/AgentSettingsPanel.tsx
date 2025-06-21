@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, ChevronDown, Settings } from 'lucide-react';
-import Image from 'next/image';
 
 interface AgentSettingsPanelProps {
   isOpen: boolean;
@@ -120,7 +119,7 @@ const AgentSettingsPanel: React.FC<AgentSettingsPanelProps> = ({ isOpen, onClose
                 <span className="text-gray-400">⚙️</span>
               </div>
               <p className="text-xs text-gray-500 mb-3">
-                Customize the assistant's behavior. 
+                Customize the assistant&apos;s behavior. 
                 <button className="text-blue-500 hover:underline ml-1 text-xs">Learn more</button>
               </p>
               

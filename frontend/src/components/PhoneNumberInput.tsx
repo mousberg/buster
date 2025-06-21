@@ -25,7 +25,6 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({ value, onChange, on
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
   const isSearchQuery = (input: string): boolean => {
     // Check if input looks like a search query rather than a phone number
-    const phonePattern = /^[+]?[0-9\s\-()]+$/;
     const hasLetters = /[a-zA-Z]/.test(input);
     const hasPostcode = /[A-Z]{1,2}[0-9]{1,2}[A-Z]?\s?[0-9][A-Z]{2}/i.test(input);
     

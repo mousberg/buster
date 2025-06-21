@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 
 interface InstructionsInputProps {
   value: string;
@@ -18,7 +18,6 @@ const InstructionsInput: React.FC<InstructionsInputProps> = ({
   onChange, 
   onKeywordsDetected 
 }) => {
-  const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
 
   useEffect(() => {
     // Detect keywords in the input
@@ -26,7 +25,6 @@ const InstructionsInput: React.FC<InstructionsInputProps> = ({
       value.toLowerCase().includes(keyword.toLowerCase())
     );
     
-    setDetectedKeywords(keywords);
     onKeywordsDetected?.(keywords);
   }, [value, onKeywordsDetected]);
 

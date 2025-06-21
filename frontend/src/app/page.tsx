@@ -14,19 +14,29 @@ import IntegrationIndicators from '@/components/IntegrationIndicators';
 import TopNavigation from '@/components/TopNavigation';
 import AgentSettingsPanel from '@/components/AgentSettingsPanel';
 import { useCallStore } from '@/store/callStore';
-import { makeCall, generateMockTranscript } from '@/services/api';
+import { generateMockTranscript } from '@/services/api';
 import { searchForPhoneNumber } from '@/services/searchService';
 
 export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [instructions, setInstructions] = useState<string>('');
   const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
-  const [brainContext, setBrainContext] = useState<any[]>([]);
+  const [brainContext, setBrainContext] = useState<Array<{
+    id: string;
+    type: 'contact' | 'location';
+    label: string;
+    value: string;
+    confidence: number;
+  }>>([]);
   const [isBrainWindowOpen, setIsBrainWindowOpen] = useState(false);
   const [hasBrainData, setHasBrainData] = useState(false);
   const [isIntegrationsOpen, setIsIntegrationsOpen] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
-  const [activeIntegrations, setActiveIntegrations] = useState<any[]>([]);
+  const [activeIntegrations, setActiveIntegrations] = useState<Array<{
+    id: string;
+    name: string;
+    connected: boolean;
+  }>>([]);
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
 
   // Clear brain context when user provides explicit phone number
@@ -59,13 +69,11 @@ export default function Home() {
     isCallActive,
     isLoading,
     callHistory,
-    pendingInfoRequests,
     startCall,
     updateCallStatus,
     addTranscriptMessage,
     completeCall,
     resolveInfoRequest,
-    setLoading,
   } = useCallStore();
 
   // Updated form validation - phone number is optional if brain has context

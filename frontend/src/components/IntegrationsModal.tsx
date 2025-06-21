@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Check, Settings } from 'lucide-react';
+import { X, Check, Settings } from 'lucide-react';
 import Image from 'next/image';
 
 interface Integration {
@@ -117,7 +117,7 @@ const IntegrationsModal: React.FC<IntegrationsModalProps> = ({
           {/* Integrations List */}
           <div className={`${selectedIntegration ? 'w-1/2' : 'w-full'} p-6 overflow-y-auto border-r border-gray-200`}>
             <p className="text-sm text-gray-500 mb-6">
-              Connect your favorite tools to enhance your assistant's capabilities
+              Connect your favorite tools to enhance your assistant&apos;s capabilities
             </p>
             
             <div className="space-y-3">
