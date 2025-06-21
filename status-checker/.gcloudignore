@@ -1,0 +1,16 @@
+# Exclude everything by default
+*
+
+# Then explicitly allow the files we need
+!Dockerfile
+!requirements.txt
+!main.py
+!env.yaml
+!cloudbuild.yaml
+!README.md
+
+# Exclude sensitive files
+.env
+*.pyc
+__pycache__/
+.git/
