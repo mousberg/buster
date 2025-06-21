@@ -27,6 +27,9 @@ class CallStatus(BaseModel):
 async def add_status(status: CallStatus):
     try:
         # Add current timestamp if not provided
+        if not status.call_id:
+            status.call_id = str('unspecified')
+
         if not status.timestamp:
             status.timestamp = datetime.utcnow()
 
