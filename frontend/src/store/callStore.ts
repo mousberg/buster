@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface TranscriptMessage {
   role: 'AI Agent' | 'Representative';
@@ -69,7 +70,9 @@ interface CallState {
   stopStatusPolling: () => void;
 }
 
-export const useCallStore = create<CallState>((set, get) => ({
+export const useCallStore = create<CallState>()(
+  persist(
+    (set, get) => ({
   // Initial state
   currentCall: null,
   isCallActive: false,
@@ -269,4 +272,12 @@ export const useCallStore = create<CallState>((set, get) => ({
       set({ statusPollingInterval: null });
     }
   },
-}));
+    }),
+    {
+      name: 'call-storage', // unique name for localStorage key
+      partialize: (state) => ({ 
+        callHistory: state.callHistory // Only persist call history
+      }),
+    }
+  )
+);
