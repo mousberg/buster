@@ -8,6 +8,12 @@ export interface TranscriptMessage {
   requestId?: string;
 }
 
+export interface StatusUpdate {
+  timestamp: string;
+  status: string;
+  message?: string;
+}
+
 export interface CallRecord {
   id: string;
   phoneNumber: string;
@@ -17,6 +23,7 @@ export interface CallRecord {
   status: 'connecting' | 'active' | 'completed' | 'failed';
   transcript: TranscriptMessage[];
   summary?: string;
+  statusUpdates: StatusUpdate[];
 }
 
 export interface ScheduledTask {
@@ -43,10 +50,14 @@ interface CallState {
   // Information requests
   pendingInfoRequests: Set<string>;
   
+  // Status polling
+  statusPollingInterval: NodeJS.Timeout | null;
+  
   // Actions
   startCall: (phoneNumber: string, instructions: string) => void;
   updateCallStatus: (status: CallRecord['status']) => void;
   addTranscriptMessage: (message: TranscriptMessage) => void;
+  addStatusUpdates: (updates: StatusUpdate[]) => void;
   completeCall: (summary?: string) => void;
   addInfoRequest: (requestId: string) => void;
   resolveInfoRequest: (requestId: string) => void;
@@ -54,6 +65,8 @@ interface CallState {
   markTaskCompleted: (taskId: string) => void;
   setLoading: (loading: boolean) => void;
   clearCurrentCall: () => void;
+  startStatusPolling: (callId: string) => void;
+  stopStatusPolling: () => void;
 }
 
 export const useCallStore = create<CallState>((set, get) => ({
@@ -64,6 +77,7 @@ export const useCallStore = create<CallState>((set, get) => ({
   callHistory: [],
   scheduledTasks: [],
   pendingInfoRequests: new Set(),
+  statusPollingInterval: null,
 
   // Actions
   startCall: (phoneNumber: string, instructions: string) => {
@@ -74,6 +88,7 @@ export const useCallStore = create<CallState>((set, get) => ({
       startTime: new Date(),
       status: 'connecting',
       transcript: [],
+      statusUpdates: [],
     };
 
     set({
@@ -112,8 +127,20 @@ export const useCallStore = create<CallState>((set, get) => ({
     }
   },
 
+  addStatusUpdates: (updates: StatusUpdate[]) => {
+    const { currentCall } = get();
+    if (currentCall && updates.length > 0) {
+      set({
+        currentCall: { 
+          ...currentCall, 
+          statusUpdates: updates 
+        },
+      });
+    }
+  },
+
   completeCall: (summary?: string) => {
-    const { currentCall, callHistory } = get();
+    const { currentCall, callHistory, stopStatusPolling } = get();
     if (currentCall) {
       const completedCall: CallRecord = {
         ...currentCall,
@@ -122,6 +149,7 @@ export const useCallStore = create<CallState>((set, get) => ({
         summary,
       };
 
+      stopStatusPolling();
       set({
         currentCall: null,
         isCallActive: false,
@@ -196,11 +224,49 @@ export const useCallStore = create<CallState>((set, get) => ({
   },
 
   clearCurrentCall: () => {
+    const { stopStatusPolling } = get();
+    stopStatusPolling();
     set({
       currentCall: null,
       isCallActive: false,
       isLoading: false,
       pendingInfoRequests: new Set(),
     });
+  },
+
+  startStatusPolling: (callId: string) => {
+    const { stopStatusPolling } = get();
+    
+    // Stop any existing polling
+    stopStatusPolling();
+    
+    // Import the API function dynamically to avoid circular dependency
+    const pollStatus = async () => {
+      try {
+        const { getCallStatus } = await import('@/services/api');
+        const statusUpdates = await getCallStatus(callId);
+        
+        const { currentCall, addStatusUpdates } = get();
+        if (currentCall && currentCall.id === callId) {
+          addStatusUpdates(statusUpdates);
+        }
+      } catch (error) {
+        console.error('Status polling error:', error);
+      }
+    };
+    
+    // Poll immediately and then every 3 seconds
+    pollStatus();
+    const interval = setInterval(pollStatus, 3000);
+    
+    set({ statusPollingInterval: interval });
+  },
+
+  stopStatusPolling: () => {
+    const { statusPollingInterval } = get();
+    if (statusPollingInterval) {
+      clearInterval(statusPollingInterval);
+      set({ statusPollingInterval: null });
+    }
   },
 }));

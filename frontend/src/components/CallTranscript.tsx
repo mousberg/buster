@@ -1,8 +1,9 @@
 import React from 'react';
-import { TranscriptMessage } from '@/store/callStore';
+import { TranscriptMessage, StatusUpdate } from '@/store/callStore';
 
 interface CallTranscriptProps {
   messages: TranscriptMessage[];
+  statusUpdates?: StatusUpdate[];
   summary?: string;
   isVisible: boolean;
   isLive?: boolean;
@@ -12,13 +13,14 @@ interface CallTranscriptProps {
 
 const CallTranscript: React.FC<CallTranscriptProps> = ({
   messages,
+  statusUpdates = [],
   summary,
   isVisible,
   isLive = false,
   callId,
   onInfoProvided,
 }) => {
-  if (!isVisible || messages.length === 0) {
+  if (!isVisible || (messages.length === 0 && statusUpdates.length === 0)) {
     return null;
   }
 
@@ -78,6 +80,32 @@ const CallTranscript: React.FC<CallTranscriptProps> = ({
           ))}
         </div>
       </div>
+
+      {statusUpdates.length > 0 && (
+        <div className="p-4 border-t border-gray-100 bg-gray-50">
+          <h4 className="text-sm font-medium text-gray-900 mb-3">Status Updates</h4>
+          <div className="space-y-2">
+            {statusUpdates.map((update, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium text-gray-700">
+                      {update.status}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(update.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  {update.message && (
+                    <p className="text-xs text-gray-600">{update.message}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {summary && (
         <div className="p-4 border-t border-gray-100 bg-gray-50">

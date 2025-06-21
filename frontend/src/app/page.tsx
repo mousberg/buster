@@ -14,7 +14,7 @@ import IntegrationIndicators from '@/components/IntegrationIndicators';
 import TopNavigation from '@/components/TopNavigation';
 import AgentSettingsPanel from '@/components/AgentSettingsPanel';
 import { useCallStore } from '@/store/callStore';
-import { generateMockTranscript } from '@/services/api';
+import { makeCall } from '@/services/api';
 import { searchForPhoneNumber } from '@/services/searchService';
 
 export default function Home() {
@@ -38,6 +38,7 @@ export default function Home() {
     connected: boolean;
   }>>([]);
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
+  const [isDebugMode, setIsDebugMode] = useState(false);
 
   // Clear brain context when user provides explicit phone number
   const handlePhoneNumberChange = (value: string) => {
@@ -71,53 +72,59 @@ export default function Home() {
     callHistory,
     startCall,
     updateCallStatus,
-    addTranscriptMessage,
     completeCall,
     resolveInfoRequest,
+    startStatusPolling,
   } = useCallStore();
 
-  // Updated form validation - phone number is optional if brain has context
-  const isFormValid = instructions.trim() !== '' && (phoneNumber.trim() !== '' || hasBrainData);
+  // Updated form validation - phone number is always optional since orchestrator can find numbers
+  const isFormValid = instructions.trim() !== '';
 
   const handleMakeCall = async () => {
+    console.log("🔴 BUTTON CLICKED - handleMakeCall function called!");
+    console.log("🔴 Form valid:", isFormValid);
+    console.log("🔴 Phone number:", phoneNumber);
+    console.log("🔴 Instructions:", instructions);
+    
     if (!isFormValid) {
-      console.log("Please fill in all fields");
+      console.log("❌ Please fill in all fields");
       return;
     }
+    
+    console.log("🎯 Starting call process...");
     
     // Start the call in the store
     startCall(phoneNumber, instructions);
     
     try {
-      console.log("Making call to:", phoneNumber);
-      console.log("Instructions:", instructions);
+      console.log("📞 Making call to:", phoneNumber);
+      console.log("📝 Instructions:", instructions);
       
-      // For now, use mock data - replace with actual API call later
+      // Get the current call to access the generated call ID
+      const currentCallState = useCallStore.getState().currentCall;
+      if (!currentCallState) {
+        throw new Error("Failed to create call record");
+      }
+      
+      const callId = currentCallState.id;
+      console.log("🆔 Generated call ID:", callId);
+      
+      // Call the orchestrator
+      console.log("🚀 Calling orchestrator...");
+      await makeCall(phoneNumber, instructions, callId);
+      
+      // Update status to active and start polling
+      console.log("✅ Orchestrator call successful, starting status polling...");
       updateCallStatus('active');
+      startStatusPolling(callId);
       
-      // Simulate getting transcript after delay
-      setTimeout(() => {
-        const mockTranscript = generateMockTranscript(instructions);
-        
-        // Add messages one by one to simulate real-time
-        mockTranscript.messages.forEach((message, index) => {
-          setTimeout(() => {
-            addTranscriptMessage(message);
-          }, (index + 1) * 1000);
-        });
-        
-        // Complete call after all messages
-        setTimeout(() => {
-          completeCall(mockTranscript.summary);
-        }, (mockTranscript.messages.length + 1) * 1000);
-        
-      }, 2000);
+      console.log("🎉 Call initiated successfully with ID:", callId);
       
     } catch (error) {
-      console.error("Error making call:", error);
+      console.error("❌ Error making call:", error);
       updateCallStatus('failed');
       setTimeout(() => {
-        completeCall("Call failed to connect");
+        completeCall(`Call failed to connect: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }, 1000);
     }
   };
@@ -223,6 +230,22 @@ export default function Home() {
           </div>
         </div>
         
+        {/* Debug section - togglable */}
+        {isDebugMode && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h3 className="text-sm font-medium text-yellow-800 mb-2">🔧 Debug Info</h3>
+            <div className="text-xs text-yellow-700 space-y-1">
+              <div>Orchestrator: /api/orchestrator (proxy)</div>
+              <div>Status Checker: /api/status (proxy)</div>
+              <div>Current Call ID: {currentCall?.id || 'None'}</div>
+              <div>Status Updates: {currentCall?.statusUpdates?.length || 0}</div>
+              <div>Call Status: {currentCall?.status || 'None'}</div>
+              <div>Is Loading: {isLoading ? 'Yes' : 'No'}</div>
+              <div>Is Call Active: {isCallActive ? 'Yes' : 'No'}</div>
+            </div>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left column - Call interface */}
           <div className="space-y-6">
@@ -257,7 +280,7 @@ export default function Home() {
                   <div className="px-4 pb-4">
                     <div className="flex items-center gap-2 text-xs text-purple-600 bg-purple-50 px-3 py-2 rounded-lg">
                       <Brain className="w-3 h-3" />
-                      <span>Brain context detected • Phone number optional</span>
+                      <span>Brain context detected</span>
                     </div>
                   </div>
                 )}
@@ -278,6 +301,7 @@ export default function Home() {
             {currentCall && (
               <CallTranscript
                 messages={currentCall.transcript}
+                statusUpdates={currentCall.statusUpdates}
                 summary={currentCall.summary}
                 isVisible={true}
                 isLive={isCallActive}
@@ -300,6 +324,8 @@ export default function Home() {
         onClose={() => setIsBrainWindowOpen(false)}
         context={brainContext}
         keywords={detectedKeywords}
+        isDebugMode={isDebugMode}
+        onToggleDebug={() => setIsDebugMode(!isDebugMode)}
       />
       
       {/* Integrations Modal */}
