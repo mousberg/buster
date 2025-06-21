@@ -149,20 +149,9 @@ const AgentSettingsPanel: React.FC<AgentSettingsPanelProps> = ({ isOpen, onClose
                 Provide the agent with integrations to extend its capabilities.
               </p>
               
-              {/* Sample Integration */}
-              <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">H</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-black">HackerNews</p>
-                    <p className="text-xs text-gray-500">Summarize the top stories on HackerNews</p>
-                  </div>
-                </div>
-                <button className="p-1 hover:bg-gray-50 rounded">
-                  <span className="text-gray-400">⚙️</span>
-                </button>
+              {/* No integrations yet */}
+              <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center">
+                <p className="text-xs text-gray-400">No integrations configured</p>
               </div>
             </div>
           </div>
