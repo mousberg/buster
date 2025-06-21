@@ -44,7 +44,7 @@ async def add_status(status: CallStatus):
 async def get_status(call_id: str):
     try:
         # Find the latest status for the given call_id
-        status = calls_collection.find_one(
+        status = calls_collection.find_all(
             {"call_id": call_id},
             sort=[("timestamp", -1)]
         )
