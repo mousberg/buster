@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/Full Logo.svg" alt="Langflow Logo" width="400"/>
+  <img src="assets/full-logo.svg" alt="Langflow Logo" width="400"/>
 </p>
 
 # Langflow Voice Agent Platform
