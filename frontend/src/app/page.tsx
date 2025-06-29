@@ -379,7 +379,7 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-700 font-medium">Made by Unicorn Mafia</span>
                     <a 
-                      href="https://github.com/Ches-ctrl/langflow-hack" 
+                      href="https://github.com/mousberg/buster" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 transition-colors"
