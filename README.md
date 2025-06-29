@@ -3,10 +3,10 @@
   <img src="assets/unicorn-mafia-logo.png" alt="Unicorn Mafia Logo" width="150"/>
 </p>
 
-# Langflow Voice Agent Platform
-**Langflow Hacking Agents Hackathon Project**
+# Buster - AI Voice Agent Platform
+**Hackathon-Ready Voice Agent with Smart Integrations**
 
-An intelligent voice agent platform that integrates ElevenLabs Conversational AI with Twilio for seamless inbound and outbound phone calls, enhanced with Langflow's orchestration capabilities and multi-modal communication channels.
+An intelligent voice agent platform that integrates ElevenLabs Conversational AI with Twilio for seamless phone calls, featuring voice-triggered integrations, DTMF answering machine navigation, and Mem0 brain context for personalized conversations.
 
 ## System Architecture
 
@@ -21,48 +21,45 @@ The platform consists of multiple interconnected components working together to 
 ### Core Components
 
 - **Twilio Integration**: Handles phone call routing and real-time audio streaming via WebSocket
-- **ElevenLabs Server**: Provides conversational AI with natural language processing and voice synthesis
-- **Central Orchestrator**: Core system that coordinates all components and manages conversation flow
-- **Langflow Long-term Memory**: RAG vector database for persistent conversation context and user history
-- **Frontend (Next.js)**: Modern web interface for managing calls and viewing transcripts
-- **WhatsApp Integration**: Multi-channel communication support
-- **MongoDB**: Persistent storage for call data, user information, and system state
+- **ElevenLabs Conversational AI**: Provides natural language processing and voice synthesis
+- **Voice-Triggered Integrations**: Calendar, Email, and WhatsApp actions triggered by keywords
+- **DTMF Handler**: Automatic answering machine navigation with tone generation
+- **Mem0 Brain Context**: AI memory for personalized conversations and user preferences
+- **Frontend (Next.js)**: Modern web interface with simplified integrations UI
+- **Status Polling**: Real-time call status updates and transcript display
 
 ### How It Works
 
-1. **Call Initiation**: Users can initiate calls through the web interface or receive inbound calls via Twilio
-2. **Audio Processing**: Real-time audio streams are processed through WebSocket connections between Twilio and ElevenLabs
-3. **AI Processing**: ElevenLabs Conversational AI handles natural language understanding and generates responses
-4. **Memory Management**: Langflow maintains conversation context and user history in the RAG vector database
-5. **Orchestration**: The Central Orchestrator manages the entire conversation flow and coordinates between services
-6. **Multi-modal Support**: Integration with WhatsApp and scheduled tasks for comprehensive communication
+1. **Call Initiation**: Users initiate calls through the web interface with instructions and phone numbers
+2. **Brain Context Loading**: Mem0 loads previous conversation memories and personalizes the agent
+3. **Audio Processing**: Real-time audio streams through WebSocket connections between Twilio and ElevenLabs
+4. **Keyword Detection**: System detects trigger words ("appointment", "email", "message") during conversations
+5. **Smart Integrations**: Automatically executes Calendar, Email, or WhatsApp actions based on voice commands
+6. **DTMF Navigation**: Handles answering machines with automatic DTMF tone generation
+7. **Status Updates**: Real-time call progress tracking with visual feedback
 
-## Example Use Cases
+## Key Features
 
-### 1. Customer Support Agent
-- **Scenario**: Automated customer service for e-commerce businesses
-- **Features**: Call routing, issue resolution, order tracking, escalation to human agents
-- **Benefits**: 24/7 availability, consistent service quality, reduced wait times
+### 🎯 Voice-Triggered Integrations
+- **Calendar**: Say "schedule appointment" → automatically books meetings
+- **Email**: Say "send email" → triggers email notifications  
+- **WhatsApp**: Say "text message" → sends WhatsApp messages
+- **Visual Feedback**: See integration actions in real-time during calls
 
-### 2. Appointment Scheduling Assistant
-- **Scenario**: Healthcare practices, salons, or service businesses
-- **Features**: Calendar integration, availability checking, confirmation calls, reminder notifications
-- **Benefits**: Reduced no-shows, streamlined booking process, staff time savings
+### 🤖 DTMF Answering Machine Navigation
+- **Auto-Detection**: Recognizes voicemail greetings and automated systems
+- **Smart Navigation**: Automatically presses appropriate keys (1 to skip, 0 for operator)
+- **Seamless Experience**: Handles answering machines without human intervention
 
-### 3. Lead Qualification System
-- **Scenario**: Sales teams and marketing agencies
-- **Features**: Inbound lead capture, qualifying questions, CRM integration, follow-up scheduling
-- **Benefits**: Improved lead quality, faster response times, higher conversion rates
+### 🧠 Mem0 Brain Context
+- **Personalized Conversations**: Remembers previous interactions and preferences
+- **Dynamic Greetings**: Custom welcome messages based on caller history
+- **Context Injection**: Enhances ElevenLabs agent with relevant memories
 
-### 4. Information Hotline
-- **Scenario**: Government agencies, educational institutions, or large organizations
-- **Features**: FAQ handling, information retrieval, call routing, multi-language support
-- **Benefits**: Reduced call volume to human operators, consistent information delivery
-
-### 5. Survey and Feedback Collection
-- **Scenario**: Market research, customer satisfaction surveys
-- **Features**: Automated survey delivery, response collection, data analysis, follow-up actions
-- **Benefits**: Higher response rates, cost-effective data collection, real-time insights
+### 📊 Real-Time Status Updates
+- **Live Tracking**: See call progress, connection status, and transcript updates
+- **Visual Indicators**: Blinking integration status and call state indicators
+- **Persistent Display**: Status updates that don't "poof" during active calls
 
 ## Setup Instructions
 
@@ -70,16 +67,16 @@ The platform consists of multiple interconnected components working together to 
 
 - Node.js (v18 or higher)
 - npm or yarn package manager
-- Google Cloud Platform account (for deployment)
 - Twilio account with phone number
 - ElevenLabs API access
+- Mem0 API key (optional, for brain context)
 - ngrok (for local development)
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Ches-ctrl/cc-hackathons/langflow-hack.git
-cd langflow-hack
+git clone https://github.com/mousberg/buster.git
+cd buster
 ```
 
 ### 2. Backend Setup
@@ -103,6 +100,7 @@ ELEVENLABS_AGENT_ID: "your_agent_id"
 TWILIO_ACCOUNT_SID: "your_twilio_account_sid"
 TWILIO_AUTH_TOKEN: "your_twilio_auth_token"
 TWILIO_PHONE_NUMBER: "your_twilio_phone_number"
+MEM0_API_KEY: "your_mem0_api_key"  # Optional, for brain context
 ```
 
 ### 3. Frontend Setup
@@ -151,19 +149,22 @@ ngrok http --url=your-static-url 8000
 
 ### 6. Testing the Setup
 
-#### Test Inbound Calls
-1. Call your Twilio phone number
-2. The call should be routed to your ElevenLabs agent
-3. Have a conversation to test the AI responses
+#### Test Voice-Triggered Integrations
+1. Open the frontend at `http://localhost:3001`
+2. Click the ⚡ integrations button
+3. Toggle on Calendar, Email, or WhatsApp
+4. Make a test call and say trigger words like "schedule appointment"
+5. Watch integration actions appear in the call transcript
 
-#### Test Outbound Calls
-1. Use the frontend interface to initiate an outbound call
-2. Or send a POST request to `/outbound-call` endpoint:
-   ```bash
-   curl -X POST http://localhost:8000/outbound-call \
-     -H "Content-Type: application/json" \
-     -d '{"to": "+1234567890", "message": "Hello, this is a test call"}'
-   ```
+#### Test DTMF Navigation
+1. Call a number with an answering machine or automated system
+2. Watch the console logs for DTMF detection and tone generation
+3. The system will automatically navigate voicemail menus
+
+#### Test Mem0 Brain Context
+1. Visit `/demo` page to create test memories
+2. Make calls with the same phone number
+3. Notice personalized greetings and context-aware responses
 
 ### 7. Deployment (Optional)
 
