@@ -145,7 +145,13 @@ export const useCallStore = create<CallState>()(
       const isCompleted = updates.some(update => 
         update.status.includes('completed') || 
         update.status.includes('finished') || 
-        update.status.includes('done')
+        update.status.includes('done') ||
+        update.status.includes('ended') ||
+        update.status.includes('concluded') ||
+        update.status.includes('summary') ||
+        update.status.includes('final') ||
+        // Check for inactivity - no new updates for 2+ minutes
+        (updates.length > 0 && (Date.now() - new Date(updates[updates.length - 1].timestamp).getTime()) > 120000)
       );
 
       set({

@@ -39,6 +39,7 @@ export default function Home() {
   }>>([]);
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
   const [isDebugMode, setIsDebugMode] = useState(false);
+  const [showMadeBy, setShowMadeBy] = useState(false);
 
   // Clear brain context when user provides explicit phone number
   const handlePhoneNumberChange = (value: string) => {
@@ -184,10 +185,9 @@ export default function Home() {
         return prev.filter(i => i.id !== id);
       } else {
         const integrationNames: Record<string, string> = {
-          'google-calendar': 'Google Calendar',
-          'whatsapp': 'WhatsApp',
-          'gmail': 'Gmail',
-          'notion': 'Notion'
+          'calendar': 'Calendar',
+          'email': 'Email', 
+          'whatsapp': 'WhatsApp'
         };
         return [...prev, { id, name: integrationNames[id] || id, connected: true }];
       }
@@ -246,8 +246,8 @@ export default function Home() {
           </div>
         )}
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left column - Call interface */}
+        <div className="max-w-2xl mx-auto">
+          {/* Main call interface - now full width */}
           <div className="space-y-6">
             <div className="relative">
               <div className={`bg-white rounded-[28px] border shadow-[0_10px_20px_rgba(0,0,0,0.10)] overflow-hidden transition-all duration-300 ${
@@ -306,17 +306,23 @@ export default function Home() {
                 isVisible={true}
                 isLive={isCallActive}
                 callId={currentCall.id}
+                callStatus={currentCall.status}
                 onInfoProvided={handleInfoProvided}
+                onEndCall={() => completeCall('Call ended manually')}
+                activeIntegrations={activeIntegrations}
               />
             )}
           </div>
           
-          {/* Right column - Call history */}
-          <div className="space-y-6">
-            <CallHistory calls={callHistory} />
-          </div>
+          {/* Call history - hidden for now */}
+          {false && (
+            <div className="space-y-6">
+              <CallHistory calls={callHistory} />
+            </div>
+          )}
         </div>
       </div>
+      
       
       {/* Brain Window */}
       <BrainWindow
@@ -342,28 +348,52 @@ export default function Home() {
       
       <footer className="py-6 border-t border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-3">
-            <p className="text-sm text-gray-600 font-medium">Powered by</p>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <img src="/mistral-logo.svg" alt="Mistral" className="w-8 h-8 object-contain" />
-                <span className="text-xs text-gray-600">Orchestration</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center gap-3 flex-1">
+              <p className="text-sm text-gray-600 font-medium">Powered by</p>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <img src="/elevenlabs-logo.svg" alt="ElevenLabs" className="w-8 h-8 object-contain" />
+                  <span className="text-xs text-gray-600">Voice</span>
+                </div>
+                <div className="text-gray-300">|</div>
+                <div className="flex items-center gap-2">
+                  <img src="/twilio-logo.svg" alt="Twilio" className="w-8 h-8 object-contain" />
+                  <span className="text-xs text-gray-600">Calling</span>
+                </div>
               </div>
-              <div className="text-gray-300">|</div>
-              <div className="flex items-center gap-2">
-                <img src="/elevenlabs-logo.svg" alt="ElevenLabs" className="w-8 h-8 object-contain" />
-                <span className="text-xs text-gray-600">Voice</span>
-              </div>
-              <div className="text-gray-300">|</div>
-              <div className="flex items-center gap-2">
-                <img src="/twilio-logo.svg" alt="Twilio" className="w-8 h-8 object-contain" />
-                <span className="text-xs text-gray-600">Calling</span>
-              </div>
-              <div className="text-gray-300">|</div>
-              <div className="flex items-center gap-2">
-                <img src="/langflow-logo.svg" alt="Langflow" className="w-8 h-8 object-contain" />
-                <span className="text-xs text-gray-600">Memory</span>
-              </div>
+            </div>
+            
+            {/* Made by circular logo */}
+            <div className="relative">
+              <button
+                onClick={() => setShowMadeBy(!showMadeBy)}
+                className="w-10 h-10 bg-black hover:bg-gray-800 rounded-full flex items-center justify-center transition-colors duration-200"
+                title="Made by Unicorn Mafia"
+              >
+                <img src="/gh-um.svg" alt="Unicorn Mafia" className="w-6 h-6 object-contain filter invert bg-transparent" />
+              </button>
+              
+              {showMadeBy && (
+                <div className="absolute bottom-12 right-0 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-lg whitespace-nowrap z-50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-700 font-medium">Made by Unicorn Mafia</span>
+                    <a 
+                      href="https://github.com/Ches-ctrl/langflow-hack" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                      </svg>
+                    </a>
+                  </div>
+                  {/* Arrow pointing down */}
+                  <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-white"></div>
+                  <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-gray-200 translate-y-px"></div>
+                </div>
+              )}
             </div>
           </div>
         </div>

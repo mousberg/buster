@@ -13,10 +13,9 @@ interface IntegrationIndicatorsProps {
 }
 
 const integrationIcons: Record<string, React.ReactNode> = {
-  'google-calendar': <Image src="/google-calendar-icon.svg" alt="Google Calendar" width={18} height={18} />,
-  'whatsapp': <Image src="/whatsapp-icon.svg" alt="WhatsApp" width={18} height={18} />,
-  'gmail': <Image src="/gmail-icon.svg" alt="Gmail" width={18} height={18} />,
-  'notion': <Image src="/notion-icon.svg" alt="Notion" width={18} height={18} />
+  'calendar': <Image src="/google-calendar-icon.svg" alt="Calendar" width={18} height={18} />,
+  'email': <Image src="/gmail-icon.svg" alt="Email" width={18} height={18} />,
+  'whatsapp': <Image src="/whatsapp-icon.svg" alt="WhatsApp" width={18} height={18} />
 };
 
 // Unused for now but kept for future styling options
@@ -61,7 +60,7 @@ const IntegrationIndicators: React.FC<IntegrationIndicatorsProps> = ({ integrati
               >
                 {integrationIcons[integration.id]}
               </div>
-              <div className="absolute -right-0.5 -top-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500" />
+              <div className="absolute -right-0.5 -top-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500 animate-pulse" />
             </div>
           </div>
         ))}
