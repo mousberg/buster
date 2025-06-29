@@ -1,5 +1,5 @@
 <p align="center" style="display: flex; justify-content: center; align-items: center; gap: 40px;">
-  <img src="assets/full-logo.svg" alt="Langflow Logo" width="400"/>
+  <img src="assets/buster.svg" alt="Buster Logo" width="400"/>
   <img src="assets/unicorn-mafia-logo.png" alt="Unicorn Mafia Logo" width="150"/>
 </p>
 
